@@ -7,7 +7,7 @@ ESCOLHA A VERSÃO SDK 54!!! <br>
 ### Após instalar ###
 rmdir /s /q node_modules <br>
 del package-lock.json <br>
-npm install
+npm install --force
 
 ### Modificar Package.json ###
 {
@@ -35,3 +35,5 @@ npm install
   },
   "private": true
 }
+
+<br> Dá um Alt+Shift+f <br>
