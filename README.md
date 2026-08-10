@@ -1,8 +1,8 @@
 ### Instalação ###
 npx create-expo-app --template bare-minimum myproject <br>
 ESCOLHA A VERSÃO SDK 54!!! <br>
-<img width="553" height="73" alt="image" src="https://github.com/user-attachments/assets/80262232-d253-4585-8d0b-1aefb74e8375" />
-Desinstale a versão da PlayStore do expo go e instale esse arquivo apk <br>
+<img width="553" height="73" alt="image" src="https://github.com/user-attachments/assets/80262232-d253-4585-8d0b-1aefb74e8375" /> <br>
+Desinstale a versão da PlayStore do expo go e instale o arquivo apk Expo-Go-2.32.20.apk <br>
 
 
 ### Após instalar ###
