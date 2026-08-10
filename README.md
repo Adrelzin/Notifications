@@ -1,10 +1,10 @@
 ### Instalação ###
-npx create-expo-app --template bare-minimum myproject
+npx create-expo-app --template bare-minimum myproject <br>
 ESCOLHA A VERSÃO SDK 54!!!
 
 ### Após instalar ###
 rmdir /s /q node_modules <br>
-del package-lock.json
+del package-lock.json <br>
 npm install
 
 ### Modificar Package.json ###
