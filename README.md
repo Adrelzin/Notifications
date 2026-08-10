@@ -2,7 +2,9 @@
 npx create-expo-app --template bare-minimum myproject <br>
 ESCOLHA A VERSÃO SDK 54!!! <br>
 <img width="553" height="73" alt="image" src="https://github.com/user-attachments/assets/80262232-d253-4585-8d0b-1aefb74e8375" /> <br>
-Desinstale a versão da PlayStore do expo go e instale o arquivo apk https://drive.google.com/file/d/160LoXuScv1VpmCG5JswW3urcbe824lt9/view?usp=drive_link <br>
+Desinstale a versão da PlayStore do expo go e instale o arquivo apk ⬇ <br>
+https://drive.google.com/file/d/160LoXuScv1VpmCG5JswW3urcbe824lt9/view?usp=drive_link <br>
+(Baixei do site oficial do expo go, n tem virus não)
 
 
 ### Após instalar ###
