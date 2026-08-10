@@ -2,6 +2,11 @@
   "expo": {
     "name": "Notifications",
     "slug": "Notifications",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "extra": {
+      "eas": {
+        "projectId": "97066783-7885-4aa3-9600-4e32d3e53e13"
+      }
+    }
   }
 }
