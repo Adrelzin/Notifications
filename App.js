@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { Text, ScrollView, StyleSheet, Platform } from "react-native";
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 import Constants from "expo-constants";
+import { useState, useEffect } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, TextInput } from 'react-native';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -16,21 +16,68 @@ export default function App() {
   const [token, setToken] = useState("");
   const [erro, setErro] = useState("");
   const [status, setStatus] = useState("Iniciando...");
+  const [titulo, setTitulo] = useState("");
+  const [mensagem, setMensagem] = useState("");
+  const [tokenDestino, setTokenDestino] = useState("");
 
   useEffect(() => {
     obterToken();
   }, []);
 
+  async function enviarNotificacao() {
+    if (!tokenDestino.trim()) {
+      Alert.alert('Atenção', 'Digite o token de destino.');
+      return;
+    }
+
+    if (!mensagem.trim()) {
+      Alert.alert('Atenção', 'Digite uma mensagem.');
+      return;
+    }
+
+    try {
+      const resposta = await fetch(
+        'https://exp.host/--/api/v2/push/send',
+        {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Accept-Encoding': 'gzip, deflate',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            to: tokenDestino,
+            sound: 'default',
+            title: titulo || 'Nova notificação',
+            body: mensagem,
+            data: {
+              origem: 'painel',
+            },
+          }),
+        }
+      );
+
+      const resultado = await resposta.json();
+
+      console.log(resultado);
+
+      Alert.alert('Sucesso', 'Notificação enviada!');
+
+      setTitulo('');
+      setMensagem('');
+    } catch (error) {
+      console.log(error);
+
+      Alert.alert(
+        'Erro',
+        'Não foi possível enviar a notificação.'
+      );
+    }
+  }
+
   async function obterToken() {
     try {
-      if (Platform.OS === "android") {
-        await Notifications.setNotificationChannelAsync("default", {
-          name: "default",
-          importance: Notifications.AndroidImportance.MAX,
-          vibrationPattern: [0, 250, 250, 250],
-          lightColor: "#FF231F7C",
-        });
-      }
+      setStatus("Verificando dispositivo...");
 
       if (!Device.isDevice) {
         setErro("Use um dispositivo físico.");
@@ -45,7 +92,9 @@ export default function App() {
       let finalStatus = existingStatus;
 
       if (existingStatus !== "granted") {
-        const { status } = await Notifications.requestPermissionsAsync();
+        const { status } =
+          await Notifications.requestPermissionsAsync();
+
         finalStatus = status;
       }
 
@@ -59,7 +108,9 @@ export default function App() {
         Constants?.easConfig?.projectId;
 
       if (!projectId) {
-        setErro("ProjectId não encontrado no app.json.");
+        setErro(
+          "ProjectId não encontrado. Verifique o app.json."
+        );
         return;
       }
 
@@ -72,7 +123,8 @@ export default function App() {
       setToken(pushToken.data);
       setStatus("Token obtido com sucesso!");
 
-      console.log("EXPO PUSH TOKEN:", pushToken.data);
+      console.log("EXPO PUSH TOKEN:");
+      console.log(pushToken.data);
     } catch (e) {
       console.log(e);
       setErro(JSON.stringify(e, null, 2));
@@ -80,52 +132,132 @@ export default function App() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.titulo}>Expo Push Token</Text>
+    <View style={{ flex: 1 }}>
+      <View style={styles.header}>
+        <Text style={styles.headerTexto}>Enviar Notificação</Text>
+      </View>
 
-      <Text style={styles.label}>Status:</Text>
-      <Text style={styles.texto}>{status}</Text>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.label}>Seu token</Text>
+        <Text style={styles.tokenTexto}>{token || status}</Text>
+        {!!erro && <Text style={styles.erro}>{erro}</Text>}
 
-      <Text style={styles.label}>Token:</Text>
-      <Text selectable style={styles.token}>
-        {token || "Nenhum token encontrado"}
-      </Text>
+        <Text style={styles.label}>Token de destino</Text>
 
-      {erro ? (
-        <>
-          <Text style={styles.label}>Erro:</Text>
-          <Text style={styles.erro}>{erro}</Text>
-        </>
-      ) : null}
-    </ScrollView>
+        <TextInput
+          style={styles.input}
+          placeholder="ExponentPushToken[...]"
+          placeholderTextColor="#9CA3AF"
+          value={tokenDestino}
+          onChangeText={setTokenDestino}
+        />
+        <Text style={styles.descricao}>
+          Cole o Expo Push Token do dispositivo que irá receber a notificação.
+        </Text>
+
+        <Text style={styles.label}>Título</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Ex: Promoção Especial"
+          placeholderTextColor="#9CA3AF"
+          value={titulo}
+          onChangeText={setTitulo}
+        />
+
+        <Text style={styles.descricao}>
+          Título que aparecerá na notificação.
+        </Text>
+
+        <Text style={styles.label}>Mensagem</Text>
+
+        <TextInput
+          style={[styles.input, styles.inputMensagem]}
+          placeholder="Digite sua mensagem..."
+          placeholderTextColor="#9CA3AF"
+          value={mensagem}
+          onChangeText={setMensagem}
+          multiline
+        />
+
+        <Text style={styles.descricao}>
+          Mensagem que será enviada na notificação.
+        </Text>
+
+        <TouchableOpacity
+          style={styles.botao}
+          onPress={enviarNotificacao}
+        >
+          <Text style={styles.textoBotao}>
+            ✈  Enviar Notificação
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  header: {
+    backgroundColor: "#1E4FCF",
+    paddingTop: 60,
+    paddingBottom: 20,
+    alignItems: "center",
+  },
+  headerTexto: {
+    color: "#fff",
+    fontSize: 22,
+    fontWeight: "bold",
+  },
   container: {
     flexGrow: 1,
     padding: 20,
-    justifyContent: "center",
-  },
-  titulo: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
   },
   label: {
     fontSize: 16,
     fontWeight: "bold",
     marginTop: 15,
   },
-  texto: {
-    fontSize: 14,
-  },
-  token: {
+  tokenTexto: {
     fontSize: 12,
-    marginTop: 10,
+    color: "#374151",
+    marginTop: 6,
+  },
+  descricao: {
+    fontSize: 13,
+    color: "#6B7280",
+    marginTop: 6,
   },
   erro: {
     color: "red",
-    marginTop: 10,
+    marginTop: 6,
+  },
+  input: {
+    width: "100%",
+    height: 45,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 7,
+    paddingHorizontal: 14,
+    fontSize: 14,
+    backgroundColor: "#FFFFFF",
+    marginTop: 8,
+  },
+  inputMensagem: {
+    height: 200,
+    paddingTop: 14,
+    textAlignVertical: "top",
+  },
+  botao: {
+    marginTop: 20,
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    backgroundColor: "#007AFF",
+  },
+  textoBotao: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });
