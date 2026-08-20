@@ -1,6 +1,9 @@
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 import Constants from "expo-constants";
+import { Feather } from "@expo/vector-icons";
+import { NavigationContainer, useNavigation } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, TextInput } from 'react-native';
 
@@ -12,68 +15,21 @@ Notifications.setNotificationHandler({
   }),
 });
 
-export default function App() {
+function Cadastro() {
+  const navigation = useNavigation();
+
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [mostrarSenha, setMostrarSenha] = useState(true);
+
   const [token, setToken] = useState("");
   const [erro, setErro] = useState("");
   const [status, setStatus] = useState("Iniciando...");
-  const [titulo, setTitulo] = useState("");
-  const [mensagem, setMensagem] = useState("");
-  const [tokenDestino, setTokenDestino] = useState("");
 
   useEffect(() => {
     obterToken();
   }, []);
-
-  async function enviarNotificacao() {
-    if (!tokenDestino.trim()) {
-      Alert.alert('Atenção', 'Digite o token de destino.');
-      return;
-    }
-
-    if (!mensagem.trim()) {
-      Alert.alert('Atenção', 'Digite uma mensagem.');
-      return;
-    }
-
-    try {
-      const resposta = await fetch(
-        'https://exp.host/--/api/v2/push/send',
-        {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'Accept-Encoding': 'gzip, deflate',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            to: tokenDestino,
-            sound: 'default',
-            title: titulo || 'Nova notificação',
-            body: mensagem,
-            data: {
-              origem: 'painel',
-            },
-          }),
-        }
-      );
-
-      const resultado = await resposta.json();
-
-      console.log(resultado);
-
-      Alert.alert('Sucesso', 'Notificação enviada!');
-
-      setTitulo('');
-      setMensagem('');
-    } catch (error) {
-      console.log(error);
-
-      Alert.alert(
-        'Erro',
-        'Não foi possível enviar a notificação.'
-      );
-    }
-  }
 
   async function obterToken() {
     try {
@@ -108,9 +64,7 @@ export default function App() {
         Constants?.easConfig?.projectId;
 
       if (!projectId) {
-        setErro(
-          "ProjectId não encontrado. Verifique o app.json."
-        );
+        setErro("ProjectId não encontrado. Verifique o app.json.");
         return;
       }
 
@@ -131,81 +85,221 @@ export default function App() {
     }
   }
 
+  function handleCadastro() {
+    if (!nome.trim() || !email.trim() || !senha.trim()) {
+      Alert.alert('Atenção', 'Preencha nome, e-mail e senha.');
+      return;
+    }
+
+    Alert.alert('Sucesso', 'Cadastro realizado com sucesso!');
+
+    setNome('');
+    setEmail('');
+    setSenha('');
+
+    navigation.navigate('Login');
+  }
+
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.header}>
-        <Text style={styles.headerTexto}>Enviar Notificação</Text>
+        <Text style={styles.headerTexto}>Cadastro</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.label}>Seu token</Text>
-        <Text style={styles.tokenTexto}>{token || status}</Text>
-        {!!erro && <Text style={styles.erro}>{erro}</Text>}
 
-        <Text style={styles.label}>Token de destino</Text>
+        <Text style={styles.label}>Nome</Text>
 
         <TextInput
           style={styles.input}
-          placeholder="ExponentPushToken[...]"
+          placeholder="Digite seu nome"
           placeholderTextColor="#9CA3AF"
-          value={tokenDestino}
-          onChangeText={setTokenDestino}
+          value={nome}
+          onChangeText={setNome}
         />
-        <Text style={styles.descricao}>
-          Cole o Expo Push Token do dispositivo que irá receber a notificação.
-        </Text>
 
-        <Text style={styles.label}>Título</Text>
+        <Text style={styles.label}>E-mail</Text>
 
         <TextInput
           style={styles.input}
-          placeholder="Ex: Promoção Especial"
+          placeholder="Digite seu e-mail"
           placeholderTextColor="#9CA3AF"
-          value={titulo}
-          onChangeText={setTitulo}
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
         />
 
-        <Text style={styles.descricao}>
-          Título que aparecerá na notificação.
-        </Text>
+        <Text style={styles.label}>Senha</Text>
 
-        <Text style={styles.label}>Mensagem</Text>
+        <View style={styles.senhaContainer}>
+          <TextInput
+            style={[styles.input, styles.inputSenha]}
+            placeholder="Digite sua senha"
+            placeholderTextColor="#9CA3AF"
+            value={senha}
+            onChangeText={setSenha}
+            secureTextEntry={mostrarSenha}
+          />
+          <TouchableOpacity
+            style={styles.icon}
+            onPress={() => setMostrarSenha(!mostrarSenha)}
+          >
+            <Feather
+              name={mostrarSenha ? 'eye' : 'eye-off'}
+              size={20}
+              color="#7c7c7c"
+            />
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.label}>Token do aparelho</Text>
 
         <TextInput
           style={[styles.input, styles.inputMensagem]}
-          placeholder="Digite sua mensagem..."
+          placeholder="Obtendo token do dispositivo..."
           placeholderTextColor="#9CA3AF"
-          value={mensagem}
-          onChangeText={setMensagem}
+          value={token || status}
           multiline
+          editable={false}
         />
 
-        <Text style={styles.descricao}>
-          Mensagem que será enviada na notificação.
-        </Text>
+        {!!erro && <Text style={styles.erro}>{erro}</Text>}
 
         <TouchableOpacity
           style={styles.botao}
-          onPress={enviarNotificacao}
+          onPress={handleCadastro}
         >
           <Text style={styles.textoBotao}>
-            ✈  Enviar Notificação
+            Cadastrar
           </Text>
         </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+          <Text style={styles.link}>Já tem uma conta? Entrar</Text>
+        </TouchableOpacity>
+
       </ScrollView>
     </View>
   );
 }
 
+function Login() {
+  const navigation = useNavigation();
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState('');
+  const [mostrarSenha, setMostrarSenha] = useState(true);
+
+  function handleLogin() {
+    if (!email.trim() || !senha.trim()) {
+      Alert.alert('Atenção', 'Preencha e-mail e senha.');
+      return;
+    }
+
+    Alert.alert('Login', 'Login realizado com sucesso!');
+
+    navigation.navigate('Home');
+  }
+
+  return (
+    <View style={{ flex: 1 }}>
+      <View style={styles.header}>
+        <Text style={styles.headerTexto}>Login</Text>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.container}>
+
+        <Text style={styles.label}>E-mail</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Digite seu e-mail"
+          placeholderTextColor="#9CA3AF"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+
+        <Text style={styles.label}>Senha</Text>
+
+        <View style={styles.senhaContainer}>
+          <TextInput
+            style={[styles.input, styles.inputSenha]}
+            placeholder="Digite sua senha"
+            placeholderTextColor="#9CA3AF"
+            value={senha}
+            onChangeText={setSenha}
+            secureTextEntry={mostrarSenha}
+          />
+          <TouchableOpacity
+            style={styles.icon}
+            onPress={() => setMostrarSenha(!mostrarSenha)}
+          >
+            <Feather
+              name={mostrarSenha ? 'eye' : 'eye-off'}
+              size={20}
+              color="#7c7c7c"
+            />
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity
+          style={styles.botao}
+          onPress={handleLogin}
+        >
+          <Text style={styles.textoBotao}>
+            Entrar
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => navigation.navigate('Cadastro')}>
+          <Text style={styles.link}>Não tem uma conta? Criar conta</Text>
+        </TouchableOpacity>
+
+      </ScrollView>
+    </View>
+  );
+}
+
+function EnviarNot(){
+  
+}
+
+function Home() {
+  return (
+    <View style={styles.homeContainer}>
+      <Text style={styles.homeTexto}>Bem-vindo!</Text>
+    </View>
+  );
+}
+
+const Stack = createNativeStackNavigator();
+
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="Login"
+        screenOptions={{ headerShown: false }}
+      >
+        <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="Cadastro" component={Cadastro} />
+        <Stack.Screen name="Home" component={Home} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: "#1E4FCF",
+    backgroundColor: "#fff",
     paddingTop: 60,
     paddingBottom: 20,
     alignItems: "center",
   },
   headerTexto: {
-    color: "#fff",
+    color: "#000",
     fontSize: 22,
     fontWeight: "bold",
   },
@@ -218,19 +312,14 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginTop: 15,
   },
-  tokenTexto: {
-    fontSize: 12,
-    color: "#374151",
-    marginTop: 6,
-  },
-  descricao: {
-    fontSize: 13,
-    color: "#6B7280",
-    marginTop: 6,
-  },
   erro: {
     color: "red",
     marginTop: 6,
+  },
+  link: {
+    marginTop: 15,
+    color: "#007AFF",
+    textAlign: "center",
   },
   input: {
     width: "100%",
@@ -244,9 +333,20 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   inputMensagem: {
-    height: 200,
+    height: 50,
     paddingTop: 14,
     textAlignVertical: "top",
+  },
+  senhaContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  inputSenha: {
+    flex: 1,
+  },
+  icon: {
+    marginLeft: -36,
+    padding: 6,
   },
   botao: {
     marginTop: 20,
@@ -259,5 +359,14 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: 16,
+  },
+  homeContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  homeTexto: {
+    fontSize: 22,
+    fontWeight: "bold",
   },
 });
